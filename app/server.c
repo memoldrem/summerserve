@@ -7,6 +7,9 @@
 #include <errno.h>
 #include <unistd.h>
 
+#define PORT 4221
+#define BUFFER_SIZE 1024
+
 int main() {
 	// Disable output buffering, means that output to these streams is written immediately, 
 	//rather than being buffered (stored temporarily) and written in larger chunks.
@@ -65,18 +68,65 @@ int main() {
 	//accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len); <-- this was the OG
 	//client_socket = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
 
-	int fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len); // this is a SECOND file descriptor for this particular connection.
+	int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len); // this is a SECOND file descriptor for this particular connection.
+	if (client_fd == -1) {
+        printf("Accept failed: %s\n", strerror(errno));
+        close(server_fd);
+        return 1;
+    }
 	// the other file descriptor is still listening for connections.
+
 
 	printf("Client connected\n"); //yas
 
 	char *reply = "HTTP/1.1 200 OK\r\n\r\n";
-  	int bytes_sent = send(fd, reply, strlen(reply), 0); //Finally, the server sends this response to the client using the send function
+  	int bytes_sent = send(client_fd, reply, strlen(reply), 0); //Finally, the server sends this response to the client using the send function
 	//int send(int sockfd, const void *msg, int len, int flags); 
 	
+
+
+
+
 	close(server_fd); // we always close what we open to avoid valgrind errors
 
 	return 0;
+}
+
+
+void handle_client(int client_fd){
+for (int i = 0; i < 2; i++) {
+        char req[BUFFER_SIZE] = {'\0'};
+        char sep[] = " "; // sep should be a string
+        int bytes_received = recv(client_fd, req, BUFFER_SIZE - 1, 0);
+        if (bytes_received < 0) {
+            printf("Receive failed: %s\n", strerror(errno));
+            return;
+        }
+
+        int j;
+        char *str_token, *resp = "HTTP/1.1 404 Not Found\r\n\r\n"; // Default response
+        for (j = 0, str_token = strtok(req, sep); str_token;
+             j++, str_token = strtok(NULL, sep)) {
+            if (j == 1) {
+                if (strcmp(str_token, "/") == 0) {
+                    resp = "HTTP/1.1 200 OK\r\n\r\n";
+                } else {
+                    resp = "HTTP/1.1 404 Not Found\r\n\r\n";
+                }
+                break; // No need to continue parsing
+            }
+        }
+
+        int resp_len = strlen(resp);
+        printf("Sending: %s\n", resp);
+        int bytes_sent = send(client_fd, resp, resp_len, 0);
+        if (bytes_sent < 0) {
+            printf("Send failed: %s\n", strerror(errno));
+            return;
+        }
+    }
+
+
 }
 
 
