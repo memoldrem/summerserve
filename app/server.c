@@ -79,14 +79,14 @@ int main() {
 
 	printf("Client connected\n"); //yas
 
-	char *reply = "HTTP/1.1 200 OK\r\n\r\n";
-  	int bytes_sent = send(client_fd, reply, strlen(reply), 0); //Finally, the server sends this response to the client using the send function
+	//char *reply = "HTTP/1.1 200 OK\r\n\r\n";
+  	//int bytes_sent = send(client_fd, reply, strlen(reply), 0); //Finally, the server sends this response to the client using the send function
 	//int send(int sockfd, const void *msg, int len, int flags); 
 	
+	handle_client(client_fd);
 
 
-
-
+	close(client_fd);
 	close(server_fd); // we always close what we open to avoid valgrind errors
 
 	return 0;
