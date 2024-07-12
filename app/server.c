@@ -94,39 +94,35 @@ int main() {
 
 
 void handle_client(int client_fd){
-for (int i = 0; i < 2; i++) {
-        char req[BUFFER_SIZE] = {'\0'};
-        char sep[] = " "; // sep should be a string
-        int bytes_received = recv(client_fd, req, BUFFER_SIZE - 1, 0);
-        if (bytes_received < 0) {
-            printf("Receive failed: %s\n", strerror(errno));
-            return;
-        }
-
-        int j;
-        char *str_token, *resp = "HTTP/1.1 404 Not Found\r\n\r\n"; // Default response
-        for (j = 0, str_token = strtok(req, sep); str_token;
-             j++, str_token = strtok(NULL, sep)) {
-            if (j == 1) {
-                if (strcmp(str_token, "/") == 0) {
-                    resp = "HTTP/1.1 200 OK\r\n\r\n";
-                } else {
-                    resp = "HTTP/1.1 404 Not Found\r\n\r\n";
-                }
-                break; // No need to continue parsing
-            }
-        }
-
-        int resp_len = strlen(resp);
-        printf("Sending: %s\n", resp);
-        int bytes_sent = send(client_fd, resp, resp_len, 0);
-        if (bytes_sent < 0) {
-            printf("Send failed: %s\n", strerror(errno));
-            return;
-        }
+ char req[BUFFER_SIZE] = {'\0'};
+    char sep[] = " "; // sep should be a string
+    int bytes_received = recv(client_fd, req, BUFFER_SIZE - 1, 0);
+    if (bytes_received < 0) {
+        printf("Receive failed: %s\n", strerror(errno));
+        return;
     }
 
-
+    printf("Received request:\n%s\n", req);
+    int j;
+    char *str_token, *resp = "HTTP/1.1 404 Not Found\r\n\r\n"; // Default response
+    for (j = 0, str_token = strtok(req, sep); str_token;
+         j++, str_token = strtok(NULL, sep)) {
+        if (j == 1) {
+            printf("Requested path: %s\n", str_token); // Debugging info
+            if (strcmp(str_token, "/") == 0) {
+                resp = "HTTP/1.1 200 OK\r\n\r\n";
+            } else {
+                resp = "HTTP/1.1 404 Not Found\r\n\r\n";
+            }
+            break; // No need to continue parsing
+        }
+    }
+    int resp_len = strlen(resp);
+    printf("Sending: %s\n", resp);
+    int bytes_sent = send(client_fd, resp, resp_len, 0);
+    if (bytes_sent < 0) {
+        printf("Send failed: %s\n", strerror(errno));
+    }
 }
 
 
