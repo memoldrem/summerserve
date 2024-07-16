@@ -94,9 +94,10 @@ int main() {
 
 
 void handle_client(int client_fd){
- char req[BUFFER_SIZE] = {'\0'};
+ char req[BUFFER_SIZE] = {'\0'}; // Initialize the request buffer to all null characters
     char sep[] = " "; // sep should be a string
-    int bytes_received = recv(client_fd, req, BUFFER_SIZE - 1, 0);
+    int bytes_received = recv(client_fd, req, BUFFER_SIZE - 1, 0); //recv() function is used in socket programming to receive data from a socket
+	//int sockfd, void *buf, size_t len, int flags
     if (bytes_received < 0) {
         printf("Receive failed: %s\n", strerror(errno));
         return;
