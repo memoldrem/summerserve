@@ -9,6 +9,7 @@
 
 #define PORT 4221
 #define BUFFER_SIZE 1024
+void handle_client(int client_fd);
 
 int main() {
 	// Disable output buffering, means that output to these streams is written immediately, 
@@ -98,19 +99,21 @@ void handle_client(int client_fd){
     char sep[] = " "; // sep should be a string
     int bytes_received = recv(client_fd, req, BUFFER_SIZE - 1, 0); //recv() function is used in socket programming to receive data from a socket
 	//int sockfd, void *buf, size_t len, int flags
-    if (bytes_received < 0) {
+    if (bytes_received < 0) { // checking for error
         printf("Receive failed: %s\n", strerror(errno));
         return;
     }
 
-    printf("Received request:\n%s\n", req);
-    int j;
+    printf("Received request:\n%s\n", req); // yay!
+    int j; // this will be used as a counter
     char *str_token, *resp = "HTTP/1.1 404 Not Found\r\n\r\n"; // Default response
-    for (j = 0, str_token = strtok(req, sep); str_token;
-         j++, str_token = strtok(NULL, sep)) {
-        if (j == 1) {
+	// str_token is a pointer to store tokens while parsing response
+	// resp is a pointer to a string that stores the default HTTP response, which is "404 Not Found"
+    for (j = 0, str_token = strtok(req, sep); str_token; j++, str_token = strtok(NULL, sep)) { 
+		//This loop uses strtok to tokenize the request using space as a delimiter.
+        if (j == 1) { // When j equals 1 (i.e., the second token, which is the requested path), it checks the value of str_token.
             printf("Requested path: %s\n", str_token); // Debugging info
-            if (strcmp(str_token, "/") == 0) {
+            if (strcmp(str_token, "/") == 0) { //If the requested path is /, the response is set to "200 OK".
                 resp = "HTTP/1.1 200 OK\r\n\r\n";
             } else {
                 resp = "HTTP/1.1 404 Not Found\r\n\r\n";
@@ -125,7 +128,4 @@ void handle_client(int client_fd){
         printf("Send failed: %s\n", strerror(errno));
     }
 }
-
-
-
 
