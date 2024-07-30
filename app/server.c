@@ -12,52 +12,42 @@
 void handle_client(int client_fd);
 
 int main() {
-	// Disable output buffering, means that output to these streams is written immediately, 
-	//rather than being buffered (stored temporarily) and written in larger chunks.
 	setbuf(stdout, NULL);
  	setbuf(stderr, NULL);
 
 	
-
-
-	// socket(): Creates a socket for communication (server_fd).
-	// bind(): Binds the socket to the server address (INADDR_ANY and port 4221).
-	// listen(): Listens for incoming connections on the server socket.
-	// accept(): Accepts an incoming connection, creating a new socket (client_socket) for communication with the client.
-
-	int server_fd; //server socket file descriptor
-	socklen_t client_addr_len; //holds the size of the client address structure.
-	struct sockaddr_in client_addr;
+	struct sockaddr_in serv_addr;
+	int server_fd;
 	
-	server_fd = socket(AF_INET, SOCK_STREAM, 0); //socket(domain, type, protocol) aka IPv4 or IPv6, stream or datagram, and TCP or UDP).
+	server_fd = socket(AF_INET, SOCK_STREAM, 0); //IPv4 or IPv6, stream or datagram, TCP or UDP.
 	//socket() simply returns to you a socket descriptor 
-	if (server_fd == -1) {
+	if (server_fd == -1) { // oops!
 		printf("Socket creation failed: %s...\n", strerror(errno));
 		return 1;
 	}
+
 	
-	// Since the tester restarts your program quite often, setting SO_REUSEADDR
-	// ensures that we don't run into 'Address already in use' errors
+	// SO_REUSEADDR ensures that we don't run into 'Address already in use' errors
+	// Setting socket options for server_fd. will return neg if it fails.
 	int reuse = 1;
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
 		printf("SO_REUSEADDR failed: %s \n", strerror(errno));
 		return 1;
 	}
 	
-	struct sockaddr_in serv_addr = { .sin_family = AF_INET ,
-									 .sin_port = htons(4221),
-									 .sin_addr = { htonl(INADDR_ANY) },
-									}; // we're hardcoding this instead of using getaddrinfo()
+
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+  
 
 	//must bind() to a port on the machine so that server can listen()
-	
 	if (bind(server_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
 		printf("Bind failed: %s \n", strerror(errno));
 		return 1;
 	}
-	
-	int connection_backlog = 5;
-	if (listen(server_fd, connection_backlog) != 0) {
+
+	if (listen(server_fd, 10) != 0) {
 		printf("Listen failed: %s \n", strerror(errno));
 		return 1;
 	}
