@@ -12,36 +12,34 @@
 void handle_client(int client_fd);
 
 int main() {
+	
+	// disable buffering
 	setbuf(stdout, NULL);
  	setbuf(stderr, NULL);
 
-	
+
 	struct sockaddr_in serv_addr;
 	int server_fd;
 	
-	server_fd = socket(AF_INET, SOCK_STREAM, 0); //IPv4 or IPv6, stream or datagram, TCP or UDP.
-	//socket() simply returns to you a socket descriptor 
+	// fire up server file descriptor and struct
+	server_fd = socket(AF_INET, SOCK_STREAM, 0); 
 	if (server_fd == -1) { // oops!
 		printf("Socket creation failed: %s...\n", strerror(errno));
 		return 1;
 	}
 
-	
-	// SO_REUSEADDR ensures that we don't run into 'Address already in use' errors
-	// Setting socket options for server_fd. will return neg if it fails.
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+
+	// setting socket options to avoid "already in use" errors
 	int reuse = 1;
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
 		printf("SO_REUSEADDR failed: %s \n", strerror(errno));
 		return 1;
 	}
-	
 
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(PORT);
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-  
-
-	//must bind() to a port on the machine so that server can listen()
+	// must bind() to a port on the machine so that server can listen()
 	if (bind(server_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
 		printf("Bind failed: %s \n", strerror(errno));
 		return 1;
@@ -55,8 +53,8 @@ int main() {
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
 	
-	//accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len); <-- this was the OG
-	//client_socket = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
+	// accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len); <-- this was the OG
+	// client_socket = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
 
 	int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len); // this is a SECOND file descriptor for this particular connection.
 	if (client_fd == -1) {
@@ -118,3 +116,14 @@ void handle_client(int client_fd){
     }
 }
 
+
+
+// Notes:
+
+//ON SOCKET():
+// IPv4 or IPv6, stream or datagram, TCP or UDP.
+// socket() simply returns to you a socket descriptor 
+
+//ON SETTING SOCKET OPTIONS:
+// SO_REUSEADDR ensures that we don't run into 'Address already in use' errors
+// Setting socket options for server_fd. will return neg if it fails.
