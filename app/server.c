@@ -45,11 +45,13 @@ int main() {
 		return 1;
 	}
 
+	// begin listening w/ backlog of 10
 	if (listen(server_fd, 10) != 0) {
 		printf("Listen failed: %s \n", strerror(errno));
 		return 1;
 	}
 	
+	// success!
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
 	
