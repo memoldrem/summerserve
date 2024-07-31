@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #define PORT 4221
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 void handle_client(int client_fd);
 
 int main() {
@@ -58,21 +58,20 @@ int main() {
 	
 	printf("Waiting for a client to connect...\n");
 
-	while(1){
+	while(1){ // why can we have this run forever?
 		
 		struct sockaddr_in client_addr;
 		socklen_t client_addr_len = sizeof(client_addr);
 
-		int *client_fd = malloc(sizeof(int)); // pointer allows fd to be passed within threads
 
-		*client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-		if(*client_fd < 0){
+		int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+		if(client_fd < 0){
 			perror("Accept failed");
     		free(client_fd);
    	 		continue;
 		}	
 
-		printf("Client connected\n"); //yas
+		printf("Connection successful!\n"); //yas
 
 		handle_client(client_fd);
 		close(client_fd);
@@ -85,26 +84,36 @@ int main() {
 	return 0;
 }
 
-
 void *handle_client(int client_fd) {
-	*char response = "HTTP/1.1 404 Not Found\r\n\r\n";
+	char *response = "HTTP/1.1 404 Not Found\r\n\r\n";
 	char request[BUFFER_SIZE];
 
 	int bytes_received = recv(client_fd, request, BUFFER_SIZE - 1, 0);
     if (bytes_received < 0) {
         perror("Receive failed");
+		close(client_fd);
         return;
     }
-	request[BUFFER_SIZE - 1] = '\0';
+	request[bytes_received] = '\0';
 
-	*char first = strtok(request, ' ');
-	*char sec = strtok(request,' ');
-	if(strcmp(sec, '/') == 0){
-		response = 
+	char *method = strtok(request, " ");
+    char *path = strtok(NULL, " ");
+
+    if (method != NULL && path != NULL) {
+        if (strcmp(path, "/") == 0) {
+            response = "HTTP/1.1 200 OK\r\n\r\n";
+        }
+    }
+
+	printf("Sending...");
+	int len = strlen(response);
+	int bytes_sent = send(client_fd, response, len, 0);
+	if(bytes_sent < 0){
+		perror("Send failed");
 	}
 
-
-	
+	close(client_fd);
+	return;
 }
 
 
@@ -119,3 +128,7 @@ void *handle_client(int client_fd) {
 // SO_REUSEADDR ensures that we don't run into 'Address already in use' errors
 // Setting socket options for server_fd. will return neg if it fails.
 
+//ON HTTP REQUESTS
+// A basic HTTP GET request might look like this:
+//   GET / HTTP/1.1
+//   Host: example.com
