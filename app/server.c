@@ -87,26 +87,21 @@ int main() {
 
 
 void *handle_client(int client_fd) {
+	*char response = "HTTP/1.1 404 Not Found\r\n\r\n";
+	char request[BUFFER_SIZE];
 
-    free(cliend_fd); 
+	int bytes_received = recv(client_fd, request, BUFFER_SIZE - 1, 0);
+    if (bytes_received < 0) {
+        perror("Receive failed");
+        return;
+    }
+	request[BUFFER_SIZE - 1] = '\0';
 
-    char buffer[1024] = {0};
-    int bytes_read;
+	*char first = strtok()
+	*char sec = strtok(request, '')
 
-    // Read data from the client
-    if ((bytes_read = read(client_fd, buffer, sizeof(buffer))) > 0) {
-        printf("Received from client: %s\n", buffer);
 
-        // Respond to the client
-        char *response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello, World!";
-        write(client_fd, response, strlen(response));
-    } else {
-
-	}
-
-    // Close the client socket
-    close(client_fd);
-    return NULL;
+	
 }
 
 
@@ -121,5 +116,3 @@ void *handle_client(int client_fd) {
 // SO_REUSEADDR ensures that we don't run into 'Address already in use' errors
 // Setting socket options for server_fd. will return neg if it fails.
 
-//ON PTHREAD_CREATE():
-//
