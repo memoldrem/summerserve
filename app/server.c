@@ -97,8 +97,11 @@ void *handle_client(int client_fd) {
     }
 	request[BUFFER_SIZE - 1] = '\0';
 
-	*char first = strtok()
-	*char sec = strtok(request, '')
+	*char first = strtok(request, ' ');
+	*char sec = strtok(request,' ');
+	if(strcmp(sec, '/') == 0){
+		response = 
+	}
 
 
 	
