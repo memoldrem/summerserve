@@ -1,4 +1,4 @@
-# Simple HTTP Server in C
+# HTTP Server in C
 
 This project implements a basic HTTP server in C that listens for client connections, handles incoming HTTP requests, and sends a simple HTTP response. The server is designed to demonstrate basic networking concepts using sockets and the `TCP/IP` protocol in C.
 
